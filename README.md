@@ -37,7 +37,7 @@ helm upgrade --install redis-exporter --namespace monitoring --set env.url=[ip] 
 --------------------------------------
 kafka exporter需要提前配置下hosts解析.
 编辑 prometheus-exporter\kafka-exporter\templates 下的kafka-exporter.yaml,将kafka节点的主机名和IP提前填写上
-![kafka](https://raw.githubusercontent.com/feiyu563/PrometheusAlert/master/img/kafka.png)
+![kafka](https://raw.githubusercontent.com/feiyu563/prometheus-exporter/master/img/kafka.png)
 
 然后启动kafka exporter即可
 ```
