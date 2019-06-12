@@ -1,0 +1,70 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    cephurl: {{ .Values.env.url }}
+    app: {{ template "ceph-exporter.name" . }}
+    chart: {{ template "ceph-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "ceph-exporter.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "ceph-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        cephurl: {{ .Values.env.url }}
+        app: {{ template "ceph-exporter.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: digitalocean/ceph_exporter:latest
+        name: ceph-exporter
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        volumeMounts:
+        - mountPath: /etc/ceph
+          name: ceph-config
+          readOnly: false
+        ports:
+        - containerPort: 9128
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      volumes:
+      - configMap:
+          name: ceph-config
+        name: ceph-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    cephurl: {{ .Values.env.url }}
+    app: {{ template "ceph-exporter.name" . }}
+    chart: {{ template "ceph-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "ceph-exporter.fullname" . }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    #prometheus.io/path: '/metrics'
+    #prometheus.io/port: '8080'
+spec:
+  ports:
+  - name: http
+    port: 9128
+    targetPort: http
+  selector:
+    app: {{ template "ceph-exporter.name" . }}
+    release: {{ .Release.Name }}

@@ -1,0 +1,64 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    mysqlurl: {{ .Values.env.url }}
+    app: {{ template "mysqld-exporter.name" . }}
+    chart: {{ template "mysqld-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "mysqld-exporter.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "mysqld-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        mysqlurl: {{ .Values.env.url }}
+        app: {{ template "mysqld-exporter.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: prom/mysqld-exporter
+        name: mysqld-exporter
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        - name: DATA_SOURCE_NAME
+          value: {{ .Values.env.mysql_env }}
+        ports:
+        - containerPort: 9104
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    mysqlurl: {{ .Values.env.url }}
+    app: {{ template "mysqld-exporter.name" . }}
+    chart: {{ template "mysqld-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "mysqld-exporter.fullname" . }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    #prometheus.io/path: '/metrics'
+    #prometheus.io/port: '8080'
+spec:
+  ports:
+  - name: http
+    port: 9104
+    targetPort: http
+  selector:
+    app: {{ template "mysqld-exporter.name" . }}
+    release: {{ .Release.Name }}

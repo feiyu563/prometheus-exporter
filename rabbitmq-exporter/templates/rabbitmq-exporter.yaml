@@ -1,0 +1,68 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    rabbiturl: {{ .Values.env.url }}
+    app: {{ template "rabbitmq-exporter.name" . }}
+    chart: {{ template "rabbitmq-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "rabbitmq-exporter.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "rabbitmq-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        rabbiturl: {{ .Values.env.url }}
+        app: {{ template "rabbitmq-exporter.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: kbudde/rabbitmq-exporter:latest
+        name: rabbitmq-exporter
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        - name: RABBIT_URL
+          value: {{ .Values.env.rabbit_url }}
+        - name: RABBIT_USER
+          value: {{ .Values.env.rabbit_user }}
+        - name: RABBIT_PASSWORD
+          value: {{ .Values.env.rabbit_password }}
+        ports:
+        - containerPort: 9090
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    rabbiturl: {{ .Values.env.url }}
+    app: {{ template "rabbitmq-exporter.name" . }}
+    chart: {{ template "rabbitmq-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "rabbitmq-exporter.fullname" . }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    #prometheus.io/path: '/metrics'
+    #prometheus.io/port: '8080'
+spec:
+  ports:
+  - name: http
+    port: 9090
+    targetPort: http
+  selector:
+    app: {{ template "rabbitmq-exporter.name" . }}
+    release: {{ .Release.Name }}

@@ -1,0 +1,66 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    redisurl: {{ .Values.env.url }}
+    app: {{ template "redis-exporter.name" . }}
+    chart: {{ template "redis-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "redis-exporter.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "redis-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        redisurl: {{ .Values.env.url }}
+        app: {{ template "redis-exporter.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: oliver006/redis_exporter:latest
+        name: redis-exporter
+        env:
+        - name: TZ
+          value: "Asia/Shanghai"
+        - name: REDIS_ADDR
+          value: {{ .Values.env.redis_addr }}
+        - name: REDIS_PASSWORD
+          value: {{ .Values.env.redis_password }}
+        ports:
+        - containerPort: 9121
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    redisurl: {{ .Values.env.url }}
+    app: {{ template "redis-exporter.name" . }}
+    chart: {{ template "redis-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  name: {{ template "redis-exporter.fullname" . }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    #prometheus.io/path: '/metrics'
+    #prometheus.io/port: '8080'
+spec:
+  ports:
+  - name: http
+    port: 9121
+    targetPort: http
+  selector:
+    app: {{ template "redis-exporter.name" . }}
+    release: {{ .Release.Name }}
