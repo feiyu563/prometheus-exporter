@@ -60,3 +60,8 @@ ceph的exporter操作起来也不算麻烦,如果是使用ceph-deploy部署的,�
 ```
 helm upgrade --install ceph-exporter --namespace monitoring ./ceph-exporter
 ```
+****FOR HELP**
+----
+Email: 244217140@qq.com
+
+![me](doc/wx.png)
