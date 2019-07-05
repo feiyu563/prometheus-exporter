@@ -64,4 +64,4 @@ helm upgrade --install ceph-exporter --namespace monitoring ./ceph-exporter
 ----
 Email: 244217140@qq.com
 
-![me](doc/wx.png)
+![me](img/wx.png)
